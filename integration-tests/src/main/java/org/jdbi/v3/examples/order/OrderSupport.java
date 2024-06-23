@@ -39,6 +39,9 @@ public final class OrderSupport {
 
     public static void createTables(Jdbi jdbi) {
         jdbi.withHandle(
+                handle -> handle.execute("DROP TABLE IF EXISTS orders"));
+
+        jdbi.withHandle(
                 handle -> handle.execute("CREATE TABLE orders (id INT, user_id INT, comment VARCHAR, address VARCHAR)"));
     }
 
