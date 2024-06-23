@@ -100,7 +100,9 @@ class JdbiAnnotationsQuarkusProcessor {
     static void addConfig(String name, boolean register) {
         String triggerAnnotation = "org.jdbi.v3.sqlobject.config." + name;
         addHandler(triggerAnnotation, "org.jdbi.v3.sqlobject.config.internal." + name + "Impl");
-        addClassReg(triggerAnnotation);
+        if (register) {
+            addClassReg(triggerAnnotation);
+        }
     }
 
     static void addLocator(String name) {
