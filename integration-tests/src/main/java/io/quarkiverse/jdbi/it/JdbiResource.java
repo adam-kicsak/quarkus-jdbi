@@ -21,6 +21,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import org.jdbi.v3.examples.CustomSqlArrayType;
+import org.jdbi.v3.examples.DaoInheritance;
 import org.jdbi.v3.examples.KeyColumnAndValueColumn;
 import org.jdbi.v3.examples.ResultsAsMultimap;
 
@@ -32,6 +33,7 @@ public class JdbiResource {
     @GET
     public String hello() throws Exception {
         CustomSqlArrayType.main();
+        DaoInheritance.main();
         KeyColumnAndValueColumn.main();
         ResultsAsMultimap.main();
 
