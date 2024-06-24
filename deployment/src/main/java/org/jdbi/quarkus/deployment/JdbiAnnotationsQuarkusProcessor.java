@@ -1,6 +1,7 @@
 package org.jdbi.quarkus.deployment;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -173,7 +174,12 @@ class JdbiAnnotationsQuarkusProcessor {
         Consumer<AnnotationInstance> recordClasses = ai -> {
             if (ai.target().kind() == AnnotationTarget.Kind.METHOD) {
                 DotName className = ai.target().asMethod().declaringClass().name();
-                HashSet<String> proxyInterfaces = new HashSet<>();
+
+                LinkedHashSet<String> proxyInterfaces = new LinkedHashSet<>();
+                proxyInterfaces.add(className.toString());
+                proxies.add(proxyInterfaces);
+
+                proxyInterfaces = new LinkedHashSet<>();
                 recordInterface(classes, proxyInterfaces, index, className);
                 proxies.add(proxyInterfaces);
             }
