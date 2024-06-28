@@ -1,6 +1,5 @@
 package org.jdbi.quarkus.deployment;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -169,35 +168,39 @@ class JdbiAnnotationsQuarkusProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectionClasses,
             BuildProducer<NativeImageProxyDefinitionBuildItem> proxyClasses) {
         Set<String> classes = new HashSet<>();
-        Set<String> annotations = new HashSet<>();
+        Set<Set<String>> proxies = new HashSet<>();
 
         Consumer<AnnotationInstance> recordClasses = ai -> {
             if (ai.target().kind() == AnnotationTarget.Kind.METHOD) {
-                classes.add(ai.target().asMethod().declaringClass().name().toString());
+                DotName className = ai.target().asMethod().declaringClass().name();
+                HashSet<String> proxyInterfaces = new HashSet<>();
+                recordInterface(classes, proxyInterfaces, index, className);
+                proxies.add(proxyInterfaces);
             }
         };
 
         for (DotName proxyTrigger : proxyTriggers) {
             index.getIndex().getAnnotations(proxyTrigger).forEach(recordClasses);
-            recordInterface(annotations, index, proxyTrigger);
         }
 
         index.getIndex().getAllKnownImplementors("org.jdbi.v3.sqlobject.SqlObject").forEach((cls) -> {
             classes.add(cls.name().toString());
         });
 
-        String cls[] = new ArrayList<>(classes).toArray(new String[classes.size()]);
-        String ann[] = new ArrayList<>(annotations).toArray(new String[annotations.size()]);
-
         // Method of the interface must be visible
-        reflectionClasses.produce(new ReflectiveClassBuildItem(false, true, false, cls));
-        reflectionClasses.produce(new ReflectiveClassBuildItem(false, true, false, ann));
+        for (String className : classes) {
+            reflectionClasses.produce(new ReflectiveClassBuildItem(false, true, false, className));
+        }
+
         // Interface should be available for dynamic proxy creation
-        proxyClasses.produce(new NativeImageProxyDefinitionBuildItem(cls));
+        for (Set<String> proxyInterfaces : proxies) {
+            proxyClasses.produce(new NativeImageProxyDefinitionBuildItem(proxyInterfaces.toArray(String[]::new)));
+        }
     }
 
-    private void recordInterface(Set<String> annotations, CombinedIndexBuildItem index, DotName iface) {
-        annotations.add(iface.toString());
+    private void recordInterface(Set<String> classes, HashSet<String> proxyInterfaces, CombinedIndexBuildItem index,
+            DotName iface) {
+        classes.add(iface.toString());
 
         ClassInfo cls = index.getIndex().getClassByName(iface);
 
@@ -205,11 +208,11 @@ class JdbiAnnotationsQuarkusProcessor {
             return;
         }
 
-        cls.asClass().interfaceNames();
+        proxyInterfaces.add(cls.name().toString());
         List<DotName> ifs = cls.asClass().interfaceNames();
         if (ifs == null) {
             return;
         }
-        ifs.forEach(dt -> recordInterface(annotations, index, dt));
+        ifs.forEach(dt -> recordInterface(classes, proxyInterfaces, index, dt));
     }
 }
