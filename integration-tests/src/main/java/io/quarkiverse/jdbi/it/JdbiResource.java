@@ -21,6 +21,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import org.jdbi.v3.examples.CustomSqlArrayType;
+import org.jdbi.v3.examples.KeyColumnAndValueColumn;
 import org.jdbi.v3.examples.ResultsAsMultimap;
 
 @Path("/jdbi")
@@ -31,6 +32,7 @@ public class JdbiResource {
     @GET
     public String hello() throws Exception {
         CustomSqlArrayType.main();
+        KeyColumnAndValueColumn.main();
         ResultsAsMultimap.main();
 
         return "OK";
